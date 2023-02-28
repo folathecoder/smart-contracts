@@ -22,6 +22,7 @@ contract Voting {
     }
 
     mapping(uint256 => mapping(address => Contestant)) public contestants;
+    mapping(uint256 => address) public contestantAddresses;
     mapping(uint256 => Voter) public voters;
 
     event RegisteredContestant(address indexed _contestantAddress);
@@ -88,6 +89,7 @@ contract Voting {
         string calldata _contestantName,
         address _contestantAddress
     ) external onlyAdmin {
+        require(canVote == false, "Voting has started");
         require(
             _checkIfContestantExist(_contestantAddress) == false,
             "The contestant already exists"
@@ -98,6 +100,8 @@ contract Voting {
         ];
         constentant.contestantName = _contestantName;
         constentant.contestantAddress = _contestantAddress;
+
+        contestantAddresses[noOfContestants + 1] = _contestantAddress;
 
         noOfContestants++;
 
@@ -143,10 +147,23 @@ contract Voting {
         emit Voted(msg.sender, constentant.contestantAddress);
     }
 
-    // Coding Challenge
-    // Create the following functions
+    function getAllContestants() external view returns (Contestant[] memory) {
+        Contestant[] memory allContestants = new Contestant[](noOfContestants);
 
-    // (1) getWinner function
-    // (2) getAllConstants function
-    // (3) getAllVoters function
+        for (uint256 i = 0; i < noOfContestants; i++) {
+            allContestants[i] = contestants[i + 1][contestantAddresses[i + 1]];
+        }
+
+        return allContestants;
+    }
+
+    function getAllVoters() external view returns (Voter[] memory) {
+        Voter[] memory allVoters = new Voter[](noOfVoters);
+
+        for (uint256 i = 0; i < noOfVoters; i++) {
+            allVoters[i] = voters[i + 1];
+        }
+
+        return allVoters;
+    }
 }
